@@ -14,12 +14,14 @@
 
     <!-- ゲーム画面 -->
     <div class="game-page" v-else-if="now_view == 'game'">
+      <!-- 誤操作を防ぐための透明な壁 -->
+      <div :class="wall_status"></div>
 
       <!-- 現在のプレイヤー -->
       <div class="now_player">
         <div class="now_player-card card">
           <div class="now_player-card-text">
-            <h3>{{ player_data[now_player].p_name }}</h3>
+            <h1>{{ player_data[now_player].p_name }}</h1>
             <p>さんのばん</p>
           </div>
         </div>
@@ -33,9 +35,13 @@
       <!-- プレイヤーの手札（イベントカード） -->
       <div class="player-hand">
         <div class="event-cards">
-          <div class="event-card card" v-for="card in player_data[now_player].hand" :key="card.id">
-            {{ card }}
+          <div class="event-card card" v-for="(card,index) in player_data[now_player].hand" :key="card.id" @click="useCard(card,index)">
+            <img :src="require('./assets/cards/'+card+'.png')">
           </div>
+        </div>
+        <div class="pass-btn">
+          <button class="btn btn-outline-dark" @click="drawCard()">カードを引く</button>
+          <button class="btn btn-outline-dark" @click="changeBombPoint('normal')">つぎのひとへ</button>
         </div>
       </div>
     </div>
@@ -54,12 +60,16 @@ export default {
   setup(){
 
     let now_view = ref("game")
-    let now_bomb_status = ref("normal")
+    let bomb_point = ref(100)
+    let now_bomb_status = ref("warning")
+    let next_player_buff_point = ref(0)
     let now_player = ref(0)
     let player_data = ref([
-      {p_id:0, p_name:"ひとし", hand:["p1","p2"]},
+      {p_id:0, p_name:"ひとし", hand:["g1","r1"]},
       {p_id:1, p_name:"おかざき", hand:[]},
     ])
+
+    let wall_status = ref("wall-disactive")
 
     const goTitlePage=()=>{
       now_view.value = "title"
@@ -71,16 +81,75 @@ export default {
 
     const StartGame=()=>{
       now_view.value = "game"
+      bomb_point.value = 100
+    }
+
+    const changeBombPoint=()=>{
+      let point = 1+next_player_buff_point.value
+      bomb_point.value = bomb_point.value - point
+      console.log("ボムポイント：", bomb_point.value)
+      next_player_buff_point.value = 0;
+    }
+
+    const changePlayer=()=>{
+      console.log("playerチェンジ")
+      wall_status.value = "wall-disactive"
+    }
+
+    //カードを引く
+    const drawCard=()=>{
+      if(player_data.value[now_player.value].hand.length == 2){
+        alert("カードは引けません")
+      }else{
+        wall_status.value = "wall-active"
+        setTimeout(() => {
+          player_data.value[now_player.value].hand.push("r1")
+          wall_status.value = "wall-disactive"
+        }, 1000);
+      }
+    }
+
+    // カード効果を記入
+    const useCard=(card,index)=>{
+      wall_status.value = "wall-active"
+      setTimeout(() => {
+        player_data.value[now_player.value].hand.splice(index,1)
+        switch(card) {
+          case "g1":
+            console.log("g1のイベントカードを使用:", index);
+            bomb_point.value += 1;
+            changePlayer()
+            break;
+
+          case "r1":
+            console.log("次のプレイヤーは消費ポイント+1");
+            next_player_buff_point.value += 1;
+            changePlayer()
+            break;
+
+          default:
+            console.log("その他");
+            changePlayer()
+            break;
+        }
+      }, 1500);
     }
 
     return{
       now_view,
+      bomb_point,
       now_bomb_status,
+      next_player_buff_point,
       player_data,
       now_player,
+      wall_status,
       goTitlePage,
       goSettingPage,
-      StartGame
+      StartGame,
+      changeBombPoint,
+      changePlayer,
+      drawCard,
+      useCard
     }
   }
 }
@@ -113,14 +182,33 @@ export default {
 
 .game-page{
   font-family: "Nico Moji";
+
+  .wall-active{
+    display: block;
+    position: fixed;
+    top: 0;
+    left:0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+  }
+
+  .wall-disactive{
+    display: none;
+  }
+
   .bomb-place{
     position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     .bomb-img-normal{
       width: 60%;
       animation: expansion 2s linear infinite;
+    }
+    .bomb-img-warning{
+      width: 100%;
+      animation: expansion 0.5s linear infinite;
     }
   }
 
@@ -141,9 +229,10 @@ export default {
       animation: slideIn 1.5s linear;
       margin: 1rem;
       .now_player-card-text{
-        h3{
+        h1{
           display: inline-block;
           margin:1rem;
+          font-size: 3rem;
         }
         p{
           display: inline-block;
@@ -175,6 +264,21 @@ export default {
         height: 7rem;
         margin: 1rem;
         display: inline-block;
+        img{
+          width: 4.8rem;
+          height: 6.8rem;
+          border: none;
+          border-radius: 5px;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+      }
+    }
+    .pass-btn{
+      button{
+        margin: 0.5rem;
       }
     }
   }
