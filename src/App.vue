@@ -19,7 +19,7 @@
       <div class="now_player">
         <div class="now_player-card card">
           <div class="now_player-card-text">
-            <h3>たけし</h3>
+            <h3>{{ player_data[now_player].p_name }}</h3>
             <p>さんのばん</p>
           </div>
         </div>
@@ -33,8 +33,8 @@
       <!-- プレイヤーの手札（イベントカード） -->
       <div class="player-hand">
         <div class="event-cards">
-          <div class="event-card card">
-            イベント
+          <div class="event-card card" v-for="card in player_data[now_player].hand" :key="card.id">
+            {{ card }}
           </div>
         </div>
       </div>
@@ -55,7 +55,11 @@ export default {
 
     let now_view = ref("game")
     let now_bomb_status = ref("normal")
-    let player_data = ref([])
+    let now_player = ref(0)
+    let player_data = ref([
+      {p_id:0, p_name:"ひとし", hand:["p1","p2"]},
+      {p_id:1, p_name:"おかざき", hand:[]},
+    ])
 
     const goTitlePage=()=>{
       now_view.value = "title"
@@ -73,6 +77,7 @@ export default {
       now_view,
       now_bomb_status,
       player_data,
+      now_player,
       goTitlePage,
       goSettingPage,
       StartGame
@@ -164,10 +169,12 @@ export default {
     bottom:0;
     padding: 1rem;
     .event-cards{
+      margin: 0 auto;
       .event-card{
         width: 5rem;
         height: 7rem;
-        margin: 0 auto;
+        margin: 1rem;
+        display: inline-block;
       }
     }
   }
