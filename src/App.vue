@@ -32,7 +32,7 @@
       <div :class="gameover">
         <h2>{{ player_data[now_player].p_name }}さん</h2>
         <h3>のまけ</h3>
-        <button class="btn btn-lg btn-light" @click="now_view = 'title'">タイトルへもどる</button>
+        <button class="btn btn-lg btn-light" @click="now_view = 'title';">タイトルへもどる</button>
       </div>
 
       <!-- 現在のプレイヤー -->
@@ -78,7 +78,7 @@ export default {
   setup(){
 
     let now_view = ref("title")
-    let bomb_point = ref(20)
+    let bomb_point = ref(100)
     let now_bomb_status = ref("normal")
     let next_player_buff_point = ref(0)
     let now_player = ref(0)
@@ -119,6 +119,9 @@ export default {
         if(data_issue == true){
           alert("参加者の名前が抜けています")
         }else{
+          gameover.value='gameover-false'
+          wall_status.value='wall-disactive'
+          now_bomb_status.value = "normal"
           now_view.value = "game"
           bomb_point.value = 100
         }
@@ -153,7 +156,7 @@ export default {
           }else{
             now_player.value+=1
           }
-          if(bomb_point.value<=10){
+          if(bomb_point.value<=15){
             now_bomb_status.value = "warning"
           }else{
             now_bomb_status.value = "normal"
@@ -181,7 +184,7 @@ export default {
     }
 
     const gameOver=()=>{
-
+      gameover.value = "gameover-true"
     }
 
     // カード効果を記入
