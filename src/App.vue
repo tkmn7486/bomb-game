@@ -17,10 +17,13 @@
       <!-- 誤操作を防ぐための透明な壁 -->
       <div :class="wall_status"></div>
 
+      <!-- 画面偏移用 -->
+      <div :class="black_board"></div>
+
       <!-- 現在のプレイヤー -->
-      <div class="now_player">
-        <div class="now_player-card card">
-          <div class="now_player-card-text">
+      <div class="now-player">
+        <div :class="now_player_class+'card'">
+          <div class="now-player-card-text">
             <h1>{{ player_data[now_player].p_name }}</h1>
             <p>さんのばん</p>
           </div>
@@ -60,7 +63,7 @@ export default {
   setup(){
 
     let now_view = ref("game")
-    let bomb_point = ref(100)
+    let bomb_point = ref(3)
     let now_bomb_status = ref("warning")
     let next_player_buff_point = ref(0)
     let now_player = ref(0)
@@ -70,6 +73,10 @@ export default {
     ])
 
     let wall_status = ref("wall-disactive")
+
+    let now_player_class = ref("now-player-card-active ")
+
+    let black_board = ref("black-board-disactive")
 
     const goTitlePage=()=>{
       now_view.value = "title"
@@ -89,11 +96,30 @@ export default {
       bomb_point.value = bomb_point.value - point
       console.log("ボムポイント：", bomb_point.value)
       next_player_buff_point.value = 0;
+      changePlayer()
     }
 
     const changePlayer=()=>{
-      console.log("playerチェンジ")
-      wall_status.value = "wall-disactive"
+      if(bomb_point.value <=0){
+        console.log("gameover/敗者: ",player_data.value[now_player.value].p_name)
+        gameOver()
+      }else{
+        black_board.value = "black-board-active"
+        console.log("playerチェンジ")
+        now_player_class.value = "now-player-card-disactive "
+        console.log(player_data.value.length)
+        console.log("now_player:", now_player.value)
+        setTimeout(() => {
+          if(player_data.value.length == now_player.value+1){
+            now_player.value = 0;
+          }else{
+            now_player.value+=1
+          }
+          now_player_class.value = "now-player-card-active "
+          black_board.value = "black-board-disactive"
+          wall_status.value = "wall-disactive"
+        }, 600);
+      }
     }
 
     //カードを引く
@@ -102,17 +128,20 @@ export default {
         alert("カードは引けません")
       }else{
         wall_status.value = "wall-active"
+        player_data.value[now_player.value].hand.push("r1")
         setTimeout(() => {
-          player_data.value[now_player.value].hand.push("r1")
-          wall_status.value = "wall-disactive"
+          changeBombPoint()
         }, 1000);
       }
+    }
+
+    const gameOver=()=>{
+
     }
 
     // カード効果を記入
     const useCard=(card,index)=>{
       wall_status.value = "wall-active"
-      setTimeout(() => {
         player_data.value[now_player.value].hand.splice(index,1)
         switch(card) {
           case "g1":
@@ -132,7 +161,6 @@ export default {
             changePlayer()
             break;
         }
-      }, 1500);
     }
 
     return{
@@ -143,6 +171,8 @@ export default {
       player_data,
       now_player,
       wall_status,
+      now_player_class,
+      black_board,
       goTitlePage,
       goSettingPage,
       StartGame,
@@ -221,14 +251,14 @@ export default {
     }
   }
 
-  .now_player{
+  .now-player{
       width: 100%;
       position:absolute;
       top:0;
-    .now_player-card{
+    .now-player-card-active{
       animation: slideIn 1.5s linear;
       margin: 1rem;
-      .now_player-card-text{
+      .now-player-card-text{
         h1{
           display: inline-block;
           margin:1rem;
@@ -238,6 +268,9 @@ export default {
           display: inline-block;
         }
       }
+    }
+    .now-player-card-disactive{
+      display: none;
     }
   }
 
@@ -264,6 +297,7 @@ export default {
         height: 7rem;
         margin: 1rem;
         display: inline-block;
+        animation: flipFadeIn 1.5s linear;
         img{
           width: 4.8rem;
           height: 6.8rem;
@@ -283,5 +317,95 @@ export default {
     }
   }
 
+  @keyframes flipFadeIn {
+    0%{
+      opacity: 0;
+      transform: rotateY(1550deg);
+    }
+    50%{
+      opacity: 1;
+      transform: rotateY(0deg);
+    }
+  }
+
+  @keyframes upFadeOut {
+    0%{
+      opacity: 1;
+      transform: translate(0);
+    }
+    50%{
+      opacity: 0;
+      transform: translate(0,2rem);
+    }
+  }
+
+  .black-board-active{
+    position: fixed;
+    top:0;
+    left:0;
+    z-index:10000;
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    opacity: 1;
+    animation: blackBoardFadeIn 0.6s linear;
+  }
+  .black-board-disactive{
+    animation: blackBoardFadeOut 0.6s linear;
+  }
+  @keyframes blackBoardFadeOut {
+    0%{
+      display: block;
+      position: fixed;
+      top:0;
+      left:0;
+      z-index:10000;
+      width: 100vw;
+      height: 100vh;
+      background-color: black;
+      opacity: 1;
+    }
+    99%{
+      display: block;
+      position: fixed;
+      top:0;
+      left:0;
+      z-index:10000;
+      width: 100vw;
+      height: 100vh;
+      background-color: black;
+      opacity: 0;
+    }
+    100%{
+      display: none;
+    }
+  }
+  @keyframes blackBoardFadeIn {
+    0%{
+      display: block;
+      position: fixed;
+      top:0;
+      left:0;
+      z-index:10000;
+      width: 100vw;
+      height: 100vh;
+      background-color: black;
+      opacity: 0;
+    }
+    99%{
+      display: block;
+      position: fixed;
+      top:0;
+      left:0;
+      z-index:10000;
+      width: 100vw;
+      height: 100vh;
+      background-color: black;
+      opacity: 1;
+    }
+    100%{
+      display: block;
+    }
+  }
 }
 </style>
