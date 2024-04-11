@@ -10,7 +10,7 @@
     <div class="setting-page" v-else-if="now_view == 'setting'">
       <h2>ゲームさんかしゃ：{{ player_data.length }}にん</h2>
       <div class="player-input">
-        <div >
+        <div>
           <input v-model="p.p_name" type="text" placeholder="ひらがな5もじいない" v-for="p in player_data" :key="p.id">
         </div>
         <br>
@@ -317,8 +317,8 @@ html{
   background-color: black;
   color: white;
   .player-input{
-    display: block;
     input{
+      width: 9rem;
       margin: 1rem;
     }
   }
